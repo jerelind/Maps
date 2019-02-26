@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html>
+<style>
+
+#googleMap {
+    width: 600px;
+    height: 400px;
+    position: absolute;
+}
+
+#places {
+    margin-left: 620px;
+}
+
+#placeList {
+    padding: 5px;
+    border-left: 0.2px solid black;
+}
+
+p {
+    margin: 5px;
+    font-size: 20px;
+}
+
+#content {
+    text-align: center;
+}
+
+.coordinates {
+    font-size: 13px;
+}
+
+.title {
+    margin-bottom: -5px;
+}
+
+</style>
+<body>
+
+<h1>My First Google Map</h1>
+<button onclick="removeAllMarkers()">Remove all markers</button>
+
+<div id="googleMap"></div>
+<div id="places">
+    <!-- <button onclick="toggleVisibility()">Show/Hide</button> -->
+    <input type="text" id="filter" onkeyup="filter('filter')" placeholder="Filter by title">
+    <input type="text" id="hourFilter" onkeyup="filter('hourFilter')" placeholder="Filter by hours">
+    <div id="placeList"></div>
+</div>
+
+<script>
+let markers = []
+
+initMap = () => {
+    const mapProp = {
+        center: new google.maps.LatLng(60.15639617730196, 24.90949634304809),
+        zoom: 11
+    }
+
+    const map = new google.maps.Map(document.getElementById("googleMap"), mapProp)
+
+    for(let i = 0; i < localStorage.length; i++) {
+        let a = localStorage.getItem(i).split('(')[1].split(',')[0]
+        let b = localStorage.getItem(i).split(', ')[1].split(')')[0]
+        // console.log(a)
+        // console.log(b)
+        let coordinates = new google.maps.LatLng(a, b)
+        // console.log(coordinates)
+        addMarker({
+            map: map,
+            coords: coordinates
+        })
+    }
+
+    google.maps.event.addListener(map, 'click', (event) => {
+    // Add marker
+        addMarker({
+            map: map, 
+            coords: event.latLng
+        })
+    })
+
+    updatePlaces()
+}
+
+addMarker = (props) => {
+    const infoWindow = new google.maps.InfoWindow({
+        content: null
+    })
+
+    const marker = new google.maps.Marker({
+        id: markers.length,
+        title: "Untitled place",
+        desc: "No description yet",
+        hours: "-",
+        position: props.coords,
+        map: props.map,
+        info: infoWindow
+    })
+  
+    marker.info.setContent(
+        `
+        <div id="content">
+            <h1 class="title">${marker.title}</h1>
+            <p class="coordinates">${marker.position}</p>
+            <div>
+                <input id="title-${marker.id}" type="text" placeholder="New title">
+                <button onclick="updateTitle(${marker.id})">Add</button>
+            </div>
+            <div>
+                <input id="desc-${marker.id}" type="text" placeholder="New description">
+                <button onclick="updateDesc(${marker.id})">Add</button>
+            </div>
+            <div>
+                <input id="hours-${marker.id}" type="text" placeholder="New hours">
+                <button onclick="updateHours(${marker.id})">Add</button>
+            </div>
+            <p>${marker.desc}</p>
+            <p>Open: ${marker.hours}</p>
+        </div>
+        `
+    )
+
+    marker.addListener('click', () => {
+        marker.info.open(props.map, marker)
+    })
+
+    marker.addListener('dblclick', () => {
+        removeMarker(marker.id)
+        marker.setMap(null)
+    })
+
+    localStorage.setItem(marker.id, marker.position)
+    markers.push(marker)
+    updatePlaces()
+    // console.log(markers.length)
+    // console.log(localStorage)
+}
+
+removeAllMarkers = () => {
+    for(let i = 0; i < markers.length; i++) {
+        markers[i].setMap(null)
+    }
+    markers = []
+    localStorage.clear()
+    updatePlaces()
+}
+
+updateTitle = (id) => {
+    markers[id].title = document.getElementById(`title-${id}`).value
+    setContent(id)
+    updatePlaces()
+}
+
+updateDesc = (id) => {
+    markers[id].desc = document.getElementById(`desc-${id}`).value
+    setContent(id)
+}
+
+updateHours = (id) => {
+    markers[id].hours = document.getElementById(`hours-${id}`).value
+    setContent(id)
+    updatePlaces()
+}
+
+updatePlaces = () => {
+    if(markers.length > 0) {
+        document.getElementById("placeList").innerHTML = markers.map(m => `<p>${m.title}<br/> Open: ${m.hours}</p>`).join("")
+    } else {
+        document.getElementById("placeList").innerHTML = "No places"
+    }
+}
+
+removeMarker = (id) => {
+    markers.splice(id, 1)
+    localStorage.removeItem(id)
+    updatePlaces()
+}
+
+// toggleVisibility = () => {
+//     if(document.getElementById("placeList").style.visibility === "visible") {
+//         document.getElementById("placeList").style.visibility = "hidden"
+//     } else {
+//         document.getElementById("placeList").style.visibility = "visible"
+//     }
+// }
+
+setContent = (id) => {
+    markers[id].info.setContent(
+    `
+    <div id="content">
+        <h1 class="title">${markers[id].title}</h1>
+        <p class="coordinates">${markers[id].position}</p>
+        <div>
+            <input id="title-${id}" type="text" placeholder="New title">
+            <button onclick="updateTitle(${id})">Add</button>
+        </div>
+        <div>
+            <input id="desc-${id}" type="text" placeholder="New description">
+            <button onclick="updateDesc(${id})">Add</button>
+        </div>
+        <div>
+            <input id="hours-${id}" type="text" placeholder="New hours">
+            <button onclick="updateHours(${id})">Add</button>
+        </div>
+        <p>${markers[id].desc}</p>
+        <p>Open: ${markers[id].hours}</p>
+    </div>
+    `
+    )
+}
+
+filter = (filterId) => {
+    let input, filter, div, p, x, i, textValue
+    input = document.getElementById(filterId)
+    filter = input.value.toUpperCase()
+    div = document.getElementById("placeList")
+    p = div.getElementsByTagName("p")
+    
+    for(i = 0; i < p.length; i++) {
+        x = p[i]
+        textValue = x.textContent || x.innerText
+        if(textValue.toUpperCase().indexOf(filter) > -1) {
+            p[i].style.visibility = "visible"
+        } else {
+            p[i].style.visibility = "hidden"
+        }
+    }
+}
+
+//console.log(markers)
+
+</script>
+
+<script src="https://maps.googleapis.com/maps/api/js?key=API_KEY&callback=initMap"></script>
+
+</body>
+</html>
