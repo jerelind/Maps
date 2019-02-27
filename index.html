@@ -60,15 +60,21 @@ initMap = () => {
     const map = new google.maps.Map(document.getElementById("googleMap"), mapProp)
 
     for(let i = 0; i < localStorage.length; i++) {
-        let a = localStorage.getItem(i).split('(')[1].split(',')[0]
-        let b = localStorage.getItem(i).split(', ')[1].split(')')[0]
-        // console.log(a)
-        // console.log(b)
-        let coordinates = new google.maps.LatLng(a, b)
-        // console.log(coordinates)
+        //parse localStorage values and set variables for marker
+        const values = JSON.parse(localStorage.getItem(i))
+        const lat = values[0].lat
+        const lng = values[0].lng
+        const coords = new google.maps.LatLng(lat, lng)
+        const title = values[1]
+        const desc = values[2]
+        const hours = values[3]
+        //console.log(title)
         addMarker({
             map: map,
-            coords: coordinates
+            coords: coords,
+            title: title,
+            desc: desc,
+            hours: hours
         })
     }
 
@@ -76,13 +82,17 @@ initMap = () => {
     // Add marker
         addMarker({
             map: map, 
-            coords: event.latLng
+            coords: event.latLng,
+            title: "Untitled place",
+            desc: "No description yet",
+            hours: "Open: -"
         })
     })
 
     updatePlaces()
 }
 
+//function for adding markers to map
 addMarker = (props) => {
     const infoWindow = new google.maps.InfoWindow({
         content: null
@@ -90,14 +100,15 @@ addMarker = (props) => {
 
     const marker = new google.maps.Marker({
         id: markers.length,
-        title: "Untitled place",
-        desc: "No description yet",
-        hours: "-",
+        title: props.title,
+        desc: props.desc,
+        hours: props.hours,
         position: props.coords,
         map: props.map,
         info: infoWindow
     })
 
+    //set infoWindow content
     marker.info.setContent(
         `
         <div id="content">
@@ -121,6 +132,7 @@ addMarker = (props) => {
         `
     )
 
+    //event listeners for markers
     marker.addListener('click', () => {
         marker.info.open(props.map, marker)
     })
@@ -130,9 +142,13 @@ addMarker = (props) => {
         marker.setMap(null)
     })
 
-    localStorage.setItem(marker.id, marker.position)
     markers.push(marker)
     updatePlaces()
+
+    //set marker values to localStorage
+    const values = [marker.position, marker.title, marker.desc, marker.hours]
+
+    localStorage.setItem(marker.id, JSON.stringify(values))
 
 }
 
@@ -149,19 +165,38 @@ updateTitle = (id) => {
     markers[id].title = document.getElementById(`title-${id}`).value
     setContent(id)
     updatePlaces()
+    
+    //change localStorage value of title
+    const values = JSON.parse(localStorage.getItem(id))
+    values[1] = markers[id].title
+    localStorage.setItem(id, JSON.stringify(values))
+    console.log(values)
 }
 
 updateDesc = (id) => {
     markers[id].desc = document.getElementById(`desc-${id}`).value
     setContent(id)
+
+    //change localStorage value of desc
+    const values = JSON.parse(localStorage.getItem(id))
+    values[2] = markers[id].desc
+    localStorage.setItem(id, JSON.stringify(values))
+    console.log(values)
 }
 
 updateHours = (id) => {
     markers[id].hours = document.getElementById(`hours-${id}`).value
     setContent(id)
     updatePlaces()
+
+    //change localStorage value of hours
+    const values = JSON.parse(localStorage.getItem(id))
+    values[3] = markers[id].hours
+    localStorage.setItem(id, JSON.stringify(values))
+    console.log(values)
 }
 
+//check for changes in marker props and render title&hours beside the map 
 updatePlaces = () => {
     if(markers.length > 0) {
         document.getElementById("placeList").innerHTML = markers.map(m => `<p>${m.title}<br/> Open: ${m.hours}</p>`).join("")
@@ -190,6 +225,7 @@ removeMarker = (id) => {
 //     }
 // }
 
+//function for setting infowindow content by marker ID
 setContent = (id) => {
     markers[id].info.setContent(
     `
@@ -215,6 +251,7 @@ setContent = (id) => {
     )
 }
 
+//function for filtering the list of places by filter input
 filter = (filterId) => {
     let input, filter, div, p, x, i, textValue
     input = document.getElementById(filterId)
