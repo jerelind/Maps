@@ -1,0 +1,46 @@
+
+body {
+    text-align: center;
+}
+
+p {
+    margin: 5px;
+    font-size: 20px;
+}
+
+button {
+    font-size: 15px;
+}
+
+input {
+    font-size: 15px;
+    border-radius: 5px;
+}
+
+#googleMap {
+    width: 800px;
+    height: 600px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+#filters {
+    margin-bottom: 10px;
+}
+
+#infoContent {
+    text-align: center;
+}
+
+.coordinates {
+    font-size: 13px;
+    margin-bottom: 5px;
+}
+
+.infoTitle {
+    margin-bottom: -5px;
+}
+
+.headTitle {
+    font-family: "Indie Flower"
+}

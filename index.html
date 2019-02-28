@@ -1,53 +1,5 @@
 <!DOCTYPE html>
 <html>
-<style>
-body {
-    text-align: center;
-}
-
-p {
-    margin: 5px;
-    font-size: 20px;
-}
-
-button {
-    font-size: 15px;
-}
-
-input {
-    font-size: 15px;
-    border-radius: 5px;
-}
-
-#googleMap {
-    width: 800px;
-    height: 600px;
-    margin-left: auto;
-    margin-right: auto;
-}
-
-#filters {
-    margin-bottom: 10px;
-}
-
-#infoContent {
-    text-align: center;
-}
-
-.coordinates {
-    font-size: 13px;
-    margin-bottom: 5px;
-}
-
-.infoTitle {
-    margin-bottom: -5px;
-}
-
-.headTitle {
-    font-family: "Indie Flower"
-}
-
-</style>
 <body>
 
 <h1 class="headTitle">Super awesome Google Maps App</h1>
@@ -58,10 +10,6 @@ input {
 </div>
 
 <div id="googleMap"></div>
-<!-- <div id="places">
-    <button onclick="toggleVisibility()">Show/Hide</button> -->
-    <!-- <div id="placeList"></div>
-</div> -->
 
 <script>
 let markers = []
@@ -74,25 +22,26 @@ initMap = () => {
 
     const map = new google.maps.Map(document.getElementById("googleMap"), mapProp)
 
-    for(let i = 0; i < localStorage.length; i++) {
-        //parse localStorage values and set variables for marker
-        const values = JSON.parse(localStorage.getItem(i))
-        const lat = values[0].lat
-        const lng = values[0].lng
-        const coords = new google.maps.LatLng(lat, lng)
-        const title = values[1]
-        const desc = values[2]
-        const openingHour = Number(values[3])
-        const closingHour = Number(values[4])
-        //console.log(title)
-        addMarker({
-            map: map,
-            coords: coords,
-            title: title,
-            desc: desc,
-            openingHour: openingHour,
-            closingHour: closingHour
-        })
+    if(localStorage.length > 0) {
+        for(let i = 0; i < localStorage.length; i++) {
+            //parse localStorage values and set variables for marker
+            const values = JSON.parse(localStorage.getItem(i))
+            const lat = values[0].lat
+            const lng = values[0].lng
+            const coords = new google.maps.LatLng(lat, lng)
+            const title = values[1]
+            const desc = values[2]
+            const openingHour = Number(values[3])
+            const closingHour = Number(values[4])
+            addMarker({
+                map: map,
+                coords: coords,
+                title: title,
+                desc: desc,
+                openingHour: openingHour,
+                closingHour: closingHour
+            })
+        }
     }
 
     google.maps.event.addListener(map, 'click', (event) => {
@@ -107,7 +56,6 @@ initMap = () => {
         })
     })
 
-    // updatePlaces()
 }
 
 //function for adding markers to map
@@ -166,7 +114,6 @@ addMarker = (props) => {
     })
 
     markers.push(marker)
-    // updatePlaces()
 
     //set marker values to localStorage
     const values = [marker.position, marker.title, marker.desc, marker.openingHour, marker.closingHour]
@@ -181,13 +128,11 @@ removeAllMarkers = () => {
     }
     markers = []
     localStorage.clear()
-    // updatePlaces()
 }
 
 updateTitle = (id) => {
     markers[id].title = document.getElementById(`title-${id}`).value
     setContent(id)
-    // updatePlaces()
     
     //change localStorage value of title
     const values = JSON.parse(localStorage.getItem(id))
@@ -208,7 +153,6 @@ updateDesc = (id) => {
 updateOpeningHour = (id) => {
     markers[id].openingHour = document.getElementById(`openingHour-${id}`).value
     setContent(id)
-    // updatePlaces()
 
     //change localStorage value of hours
     const values = JSON.parse(localStorage.getItem(id))
@@ -225,33 +169,16 @@ updateClosingHour = (id) => {
     localStorage.setItem(id, JSON.stringify(values))
 }
 
-//check for changes in marker props and render title&hours beside the map 
-// updatePlaces = () => {
-//     if(markers.length > 0) {
-//         document.getElementById("placeList").innerHTML = markers.map(m => `<p>${m.title}<br/> Open: ${m.hours}</p>`).join("")
-//     } else {
-//         document.getElementById("placeList").innerHTML = "No places"
-//     }
-// }
-
 removeMarker = (id) => {
 
     //find the index of the marker to be removed
     const index = markers.findIndex(m => m.id === id)
-    //console.log(index)
+
     //remove the marker from markers array
     markers.splice(index, 1)
     localStorage.removeItem(id)
-    // updatePlaces()
-}
 
-// toggleVisibility = () => {
-//     if(document.getElementById("placeList").style.visibility === "visible") {
-//         document.getElementById("placeList").style.visibility = "hidden"
-//     } else {
-//         document.getElementById("placeList").style.visibility = "visible"
-//     }
-// }
+}
 
 //function for setting infowindow content by marker ID
 setContent = (id) => {
@@ -304,12 +231,12 @@ filter = (filterId) => {
 
     if(filterId === "hourFilter") {
         for(let j = 0; j < markers.length; j++) {
-            const openingHour = markers[j].openingHour
-            const closingHour = markers[j].closingHour
+            const openingHour = Number(markers[j].openingHour)
+            const closingHour = Number(markers[j].closingHour)
 
             if(filter >= openingHour && filter <= closingHour) {
                 markers[j].setVisible(true)
-            } else if(filter.length === 0 ){
+            } else if(filter.length === 0){
                 markers[j].setVisible(true)
             } else {
                 markers[j].setVisible(false)
@@ -323,7 +250,10 @@ filter = (filterId) => {
 </script>
 
 <script src="https://maps.googleapis.com/maps/api/js?key=API_KEY&callback=initMap"></script>
+
+<!--Styles-->
 <link href="https://fonts.googleapis.com/css?family=Indie+Flower" rel="stylesheet">
+<link rel="stylesheet" href="index.css">
 
 </body>
 </html>
